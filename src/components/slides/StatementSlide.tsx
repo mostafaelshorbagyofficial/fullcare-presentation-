@@ -1,6 +1,6 @@
 import React from 'react';
 import { SlideDefinition } from '../../types/presentation';
-import { Sparkles, Quote, ShieldCheck, HeartHandshake, CheckCircle2 } from 'lucide-react';
+import { Sparkles, Quote } from 'lucide-react';
 
 interface SlideProps {
   slide: SlideDefinition;
@@ -9,15 +9,14 @@ interface SlideProps {
 
 export const StatementSlide: React.FC<SlideProps> = ({ slide, isAr }) => {
   const content = isAr ? slide.ar : slide.en;
-
   const isLogoSlide = slide.visual?.type === 'logo-comparison';
 
   return (
-    <div className="w-full h-full flex flex-col justify-center items-center max-w-5xl mx-auto py-2 px-2 sm:px-6 text-center">
+    <div className="w-full flex flex-col justify-center items-center max-w-5xl mx-auto py-2 px-2 sm:px-6 text-center">
       <div className="flex flex-col items-center gap-4 sm:gap-6 w-full animate-fade-in-up">
         {content.tagline && (
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold tracking-widest uppercase">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-pharma-primary/15 border border-pharma-primary/30 text-pharma-light text-xs font-semibold tracking-widest uppercase">
+            <Sparkles className="w-3.5 h-3.5 text-pharma-primary" />
             <span>{content.tagline}</span>
           </div>
         )}
@@ -28,13 +27,13 @@ export const StatementSlide: React.FC<SlideProps> = ({ slide, isAr }) => {
           </h2>
 
           {content.subtitle && (
-            <p className="text-xl sm:text-3xl md:text-4xl font-bold text-gradient-emerald">
+            <p className="text-xl sm:text-3xl md:text-4xl font-bold text-gradient-pharma">
               {content.subtitle}
             </p>
           )}
 
           {content.lead && (
-            <p className="text-base sm:text-xl text-slate-300 font-medium max-w-2xl mx-auto">
+            <p className="text-base sm:text-xl text-pharma-light font-medium max-w-2xl mx-auto">
               {content.lead}
             </p>
           )}
@@ -42,7 +41,7 @@ export const StatementSlide: React.FC<SlideProps> = ({ slide, isAr }) => {
 
         {/* Highlight Banner */}
         {content.highlightText && (
-          <div className="my-1 px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-950/80 via-slate-900/90 to-teal-950/80 border border-emerald-500/40 shadow-xl max-w-3xl">
+          <div className="my-1 px-6 py-3 rounded-2xl bg-gradient-to-r from-pharma-deep via-pharma-support/50 to-pharma-deep border border-pharma-primary/40 shadow-xl max-w-3xl">
             <p className="text-lg sm:text-2xl font-black text-white tracking-wide">
               {content.highlightText}
             </p>
@@ -61,8 +60,8 @@ export const StatementSlide: React.FC<SlideProps> = ({ slide, isAr }) => {
         {/* Logo comparison or visual showcase */}
         {isLogoSlide && (
           <div className="w-full max-w-3xl mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="glass-card p-4 rounded-2xl flex flex-col items-center gap-3 border border-white/10 hover:border-emerald-500/40 transition-all">
-              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+            <div className="glass-card p-4 rounded-2xl flex flex-col items-center gap-3 border border-pharma-primary/20 hover:border-pharma-primary/60 transition-all">
+              <span className="text-xs font-bold text-pharma-primary uppercase tracking-wider">
                 {isAr ? 'المقترح البصري الأول' : 'PROPOSED DIRECTION 01'}
               </span>
               <div className="w-full aspect-[4/3] rounded-xl bg-white p-3 flex items-center justify-center">
@@ -70,8 +69,8 @@ export const StatementSlide: React.FC<SlideProps> = ({ slide, isAr }) => {
               </div>
             </div>
 
-            <div className="glass-card p-4 rounded-2xl flex flex-col items-center gap-3 border border-white/10 hover:border-cyan-500/40 transition-all">
-              <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">
+            <div className="glass-card p-4 rounded-2xl flex flex-col items-center gap-3 border border-pharma-support/30 hover:border-pharma-secondary transition-all">
+              <span className="text-xs font-bold text-pharma-secondary uppercase tracking-wider">
                 {isAr ? 'المقترح البصري الثاني' : 'PROPOSED DIRECTION 02'}
               </span>
               <div className="w-full aspect-[4/3] rounded-xl bg-white p-3 flex items-center justify-center">
@@ -92,16 +91,16 @@ export const StatementSlide: React.FC<SlideProps> = ({ slide, isAr }) => {
             {content.cards.map((card, idx) => (
               <div
                 key={idx}
-                className="glass-card p-4 rounded-2xl flex flex-col items-center text-center gap-2 border border-white/10 hover:border-emerald-500/40 transition-all hover:scale-[1.02]"
+                className="glass-card p-4 rounded-2xl flex flex-col items-center text-center gap-2 border border-pharma-primary/15 hover:border-pharma-primary/50 transition-all hover:scale-[1.02]"
               >
                 {card.badge && (
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">
+                  <span className="px-2.5 py-0.5 rounded-full bg-pharma-primary/20 text-pharma-light text-[10px] font-bold border border-pharma-primary/30">
                     {card.badge}
                   </span>
                 )}
                 <h4 className="text-sm sm:text-base font-bold text-white">{card.title}</h4>
                 {card.subtitle && (
-                  <span className="text-xs text-emerald-400 font-medium">{card.subtitle}</span>
+                  <span className="text-xs text-pharma-primary font-medium">{card.subtitle}</span>
                 )}
                 {card.description && (
                   <p className="text-xs text-slate-300 leading-snug">{card.description}</p>
@@ -112,10 +111,10 @@ export const StatementSlide: React.FC<SlideProps> = ({ slide, isAr }) => {
         )}
 
         {content.quote && (
-          <div className="flex items-center gap-2 text-slate-400 text-xs sm:text-sm italic mt-2">
-            <Quote className="w-4 h-4 text-emerald-400 rotate-180 flex-shrink-0" />
+          <div className="flex items-center gap-2 text-pharma-light text-xs sm:text-sm italic mt-2">
+            <Quote className="w-4 h-4 text-pharma-primary rotate-180 flex-shrink-0" />
             <span>{content.quote}</span>
-            <Quote className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+            <Quote className="w-4 h-4 text-pharma-primary flex-shrink-0" />
           </div>
         )}
 

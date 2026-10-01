@@ -88,17 +88,14 @@ export interface SlideDefinition {
     overlayGradient?: boolean;
     founderIndex?: number;
   };
-  accentColor?: 'emerald' | 'cyan' | 'gold' | 'rose' | 'indigo' | 'amber';
+  accentColor?: 'primary' | 'cyan' | 'deep' | 'support' | 'secondary' | 'gold' | 'emerald';
 }
 
 export interface PresentationState {
-  currentSlide: number; // 0 = Opening screen, 1..38 = Slides
-  totalSlides: number;
-  isPlaying: boolean;
   language: Language;
+  activeSection: SectionKey;
+  scrollProgress: number;
   isFullscreen: boolean;
-  isAutoPlay: boolean;
-  navigationDirection: 'next' | 'prev' | null;
   isLogosModalOpen: boolean;
   isShortcutsModalOpen: boolean;
 }

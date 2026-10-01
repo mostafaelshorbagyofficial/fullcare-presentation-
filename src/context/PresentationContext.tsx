@@ -4,18 +4,12 @@ import { SLIDES, SECTIONS } from '../data/slides';
 
 interface PresentationContextType extends PresentationState {
   slides: SlideDefinition[];
-  currentSlideData: SlideDefinition | null;
-  currentSection: SectionKey;
-  goToSlide: (slideNumber: number) => void;
-  nextSlide: () => void;
-  prevSlide: () => void;
-  startPresentation: () => void;
-  exitToOpening: () => void;
+  scrollToSection: (sectionKey: SectionKey) => void;
+  scrollToSlide: (slideNumber: number) => void;
+  scrollToTop: () => void;
   toggleLanguage: () => void;
   setLanguage: (lang: Language) => void;
   toggleFullscreen: () => void;
-  toggleAutoPlay: () => void;
-  jumpToSection: (sectionKey: SectionKey) => void;
   setLogosModalOpen: (open: boolean) => void;
   setShortcutsModalOpen: (open: boolean) => void;
 }
@@ -23,17 +17,12 @@ interface PresentationContextType extends PresentationState {
 const PresentationContext = createContext<PresentationContextType | undefined>(undefined);
 
 export const PresentationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentSlide, setCurrentSlide] = useState<number>(0); // 0 = Opening screen, 1..38
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [language, setLanguageState] = useState<Language>('ar');
+  const [activeSection, setActiveSection] = useState<SectionKey>('intro');
+  const [scrollProgress, setScrollProgress] = useState<number>(0);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
-  const [isAutoPlay, setIsAutoPlay] = useState<boolean>(false);
-  const [navigationDirection, setNavigationDirection] = useState<'next' | 'prev' | null>(null);
   const [isLogosModalOpen, setLogosModalOpen] = useState<boolean>(false);
   const [isShortcutsModalOpen, setShortcutsModalOpen] = useState<boolean>(false);
-  const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
-
-  const totalSlides = SLIDES.length; // 38
 
   // Sync HTML dir and lang attributes
   useEffect(() => {
@@ -52,6 +41,33 @@ export const PresentationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
     };
+  }, []);
+
+  // Continuous Scroll Spy to update scrollProgress and activeSection
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+      setScrollProgress(Math.min(100, Math.max(0, progress)));
+
+      // Detect active section
+      for (let i = SECTIONS.length - 1; i >= 0; i--) {
+        const section = SECTIONS[i];
+        const el = document.getElementById(`section-${section.key}`);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= window.innerHeight * 0.35) {
+            setActiveSection(section.key);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const setLanguage = useCallback((lang: Language) => {
@@ -74,107 +90,39 @@ export const PresentationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
       }
     } catch (err) {
-      console.warn('Fullscreen request could not be completed:', err);
+      console.warn('Fullscreen request error:', err);
     }
   }, []);
 
-  const goToSlide = useCallback((targetSlide: number) => {
-    if (isTransitioning) return;
-    if (targetSlide < 0 || targetSlide > totalSlides) return;
-
-    setIsTransitioning(true);
-    setNavigationDirection(targetSlide > currentSlide ? 'next' : 'prev');
-    setCurrentSlide(targetSlide);
-    setIsPlaying(targetSlide > 0);
-
-    setTimeout(() => {
-      setIsTransitioning(false);
-      setNavigationDirection(null);
-    }, 450);
-  }, [currentSlide, totalSlides, isTransitioning]);
-
-  const startPresentation = useCallback(() => {
-    goToSlide(1);
-  }, [goToSlide]);
-
-  const exitToOpening = useCallback(() => {
-    goToSlide(0);
-  }, [goToSlide]);
-
-  const nextSlide = useCallback(() => {
-    if (isTransitioning) return;
-    if (currentSlide === 0) {
-      startPresentation();
-    } else if (currentSlide < totalSlides) {
-      goToSlide(currentSlide + 1);
+  const scrollToSection = useCallback((sectionKey: SectionKey) => {
+    const el = document.getElementById(`section-${sectionKey}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  }, [currentSlide, totalSlides, isTransitioning, startPresentation, goToSlide]);
-
-  const prevSlide = useCallback(() => {
-    if (isTransitioning) return;
-    if (currentSlide > 1) {
-      goToSlide(currentSlide - 1);
-    } else if (currentSlide === 1) {
-      goToSlide(0);
-    }
-  }, [currentSlide, isTransitioning, goToSlide]);
-
-  const jumpToSection = useCallback((sectionKey: SectionKey) => {
-    const targetSection = SECTIONS.find(s => s.key === sectionKey);
-    if (targetSection) {
-      goToSlide(targetSection.slideRange[0]);
-    }
-  }, [goToSlide]);
-
-  const toggleAutoPlay = useCallback(() => {
-    setIsAutoPlay(prev => !prev);
   }, []);
 
-  // AutoPlay timer
-  useEffect(() => {
-    if (!isAutoPlay || currentSlide === 0) return;
-    const timer = setInterval(() => {
-      if (currentSlide < totalSlides) {
-        nextSlide();
-      } else {
-        setIsAutoPlay(false);
-      }
-    }, 6000);
-    return () => clearInterval(timer);
-  }, [isAutoPlay, currentSlide, totalSlides, nextSlide]);
+  const scrollToSlide = useCallback((slideNumber: number) => {
+    const el = document.getElementById(`slide-${slideNumber}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
 
-  // Global keyboard shortcuts
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  // Global Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Avoid intercepting input fields
       if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
 
-      if (e.key === 'ArrowRight') {
+      if (e.key === 'Home') {
         e.preventDefault();
-        if (language === 'ar') {
-          prevSlide();
-        } else {
-          nextSlide();
-        }
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        if (language === 'ar') {
-          nextSlide();
-        } else {
-          prevSlide();
-        }
-      } else if (e.key === ' ' || e.key === 'Spacebar' || e.key === 'PageDown') {
-        e.preventDefault();
-        nextSlide();
-      } else if (e.key === 'PageUp') {
-        e.preventDefault();
-        prevSlide();
-      } else if (e.key === 'Home') {
-        e.preventDefault();
-        goToSlide(1);
+        scrollToTop();
       } else if (e.key === 'End') {
         e.preventDefault();
-        goToSlide(totalSlides);
+        window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
       } else if (e.key === 'f' || e.key === 'F') {
         e.preventDefault();
         toggleFullscreen();
@@ -192,37 +140,24 @@ export const PresentationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentSlide, language, totalSlides, isLogosModalOpen, isShortcutsModalOpen, nextSlide, prevSlide, goToSlide, toggleFullscreen, toggleLanguage]);
-
-  // Current Slide Data & Section
-  const currentSlideData = currentSlide > 0 ? SLIDES[currentSlide - 1] : null;
-  const currentSection = currentSlideData ? currentSlideData.section : 'intro';
+  }, [isLogosModalOpen, isShortcutsModalOpen, scrollToTop, toggleFullscreen, toggleLanguage]);
 
   return (
     <PresentationContext.Provider
       value={{
-        currentSlide,
-        totalSlides,
-        isPlaying,
         language,
+        activeSection,
+        scrollProgress,
         isFullscreen,
-        isAutoPlay,
-        navigationDirection,
         isLogosModalOpen,
         isShortcutsModalOpen,
         slides: SLIDES,
-        currentSlideData,
-        currentSection,
-        goToSlide,
-        nextSlide,
-        prevSlide,
-        startPresentation,
-        exitToOpening,
+        scrollToSection,
+        scrollToSlide,
+        scrollToTop,
         toggleLanguage,
         setLanguage,
         toggleFullscreen,
-        toggleAutoPlay,
-        jumpToSection,
         setLogosModalOpen,
         setShortcutsModalOpen,
       }}

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { PresentationProvider, usePresentation } from './context/PresentationContext';
+import { PresentationProvider } from './context/PresentationContext';
 import { OpeningScreen } from './components/OpeningScreen';
 import { TopNavigation } from './components/TopNavigation';
 import { NavigationControls } from './components/NavigationControls';
@@ -7,10 +7,8 @@ import { SlideRenderer } from './components/SlideRenderer';
 import { BrandLogosModal } from './components/BrandLogosModal';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 
-const PresentationShell: React.FC = () => {
-  const { currentSlide } = usePresentation();
-
-  // Fix dynamic viewport height on mobile browsers (Safari iOS / Android Chrome)
+const ContinuousPresentation: React.FC = () => {
+  // Fix dynamic viewport height on mobile browsers
   useEffect(() => {
     const updateAppHeight = () => {
       document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
@@ -25,21 +23,24 @@ const PresentationShell: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative w-full h-[100dvh] bg-navy-950 text-slate-100 flex flex-col justify-between overflow-hidden">
-      {/* Background Subtle Grid & Lighting */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-30 pointer-events-none" />
+    <div className="relative w-full min-h-screen bg-navy-950 text-slate-100 flex flex-col justify-between">
+      {/* Background Subtle Grid */}
+      <div className="fixed inset-0 bg-grid-pattern opacity-25 pointer-events-none" />
 
-      {currentSlide === 0 ? (
+      {/* Sticky Top Navigation */}
+      <TopNavigation />
+
+      {/* Main Continuous Presentation Stream */}
+      <main className="relative z-10 w-full flex flex-col">
+        {/* 01. Opening Screen */}
         <OpeningScreen />
-      ) : (
-        <div className="relative z-10 w-full h-full flex flex-col justify-between">
-          <TopNavigation />
-          <SlideRenderer />
-          <NavigationControls />
-        </div>
-      )}
 
-      {/* Global Modals */}
+        {/* 02. Continuous All 38 Strategic Slides */}
+        <SlideRenderer />
+      </main>
+
+      {/* Floating Controls & Modals */}
+      <NavigationControls />
       <BrandLogosModal />
       <KeyboardShortcutsModal />
     </div>
@@ -49,7 +50,7 @@ const PresentationShell: React.FC = () => {
 export function App() {
   return (
     <PresentationProvider>
-      <PresentationShell />
+      <ContinuousPresentation />
     </PresentationProvider>
   );
 }
